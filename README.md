@@ -21,10 +21,6 @@ operações:
   como listagens de dados produzidos por um destes clientes
   produtores.
 
-O aluno deverá desenvolver apenas os **cliente produtor** e o
-**cliente supervisor**. O módulo **servidor** já está pronto e não
-precisa ser trabalhado.
-
 
 ## O módulo servidor
 
