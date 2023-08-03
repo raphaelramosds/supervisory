@@ -16,8 +16,10 @@ void Monitor::paintEvent(QPaintEvent *event)
     QPen pen;
 
     // Draw the canvas
-    brush.setColor(QColor(40,40,40));
+    brush.setColor(QColor(250,250,250));
     brush.setStyle(Qt::SolidPattern);
+    pen.setColor(QColor(250,250,250));
     painter.setBrush(brush);
+    painter.setPen(pen);
     painter.drawRect(0,0,width(),height());
 }

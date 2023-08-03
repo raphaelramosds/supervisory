@@ -54,7 +54,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QListWidget" name="listWidgetClients"/>
+       <widget class="QListWidget" name="listWidgetProducers"/>
       </item>
       <item>
        <widget class="QPushButton" name="pushButtonUpdate">

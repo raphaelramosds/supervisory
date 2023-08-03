@@ -24,12 +24,50 @@ MainWindow::MainWindow(QWidget *parent) :
         this,
         SLOT(tcpDisconnect()));
 
-    /*
-    connect(ui->pushButtonGet,
-            SIGNAL(clicked(bool)),
-            this,
-            SLOT(getData()));
-    */
+    // List producers on listWidget
+    connect(
+        this,
+        SIGNAL(hostConnected(bool)),
+        this,
+        SLOT(listProducers())
+    );
+
+    // Set producer whose data will be displayed
+    connect(
+        ui->listWidgetProducers,
+        SIGNAL(itemClicked(QListWidgetItem*)),
+        this,
+        SLOT(setProducer(QListWidgetItem*))
+    );
+
+    // Start and stop getting producer's data
+    connect(
+        ui->pushButtonStart,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(activateTimer())
+    );
+
+    connect(
+        ui->pushButtonStop,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(deactivateTimer())
+    );
+
+    // Set timing value
+    connect(
+        ui->horizontalSliderTiming,
+        SIGNAL(valueChanged(int)),
+        ui->labelTimingValue,
+        SLOT(setNum(int)));
+}
+
+
+MainWindow::~MainWindow()
+{
+    delete socket;
+    delete ui;
 }
 
 void MainWindow::tcpConnect(){
@@ -38,6 +76,7 @@ void MainWindow::tcpConnect(){
 
     if(socket->waitForConnected(3000)){
         qDebug() << "Connected";
+        emit hostConnected(true);
     } else{
         qDebug() << "Disconnected";
     }
@@ -49,19 +88,30 @@ void MainWindow::tcpDisconnect()
     socket->disconnectFromHost();
 }
 
-void MainWindow::getData(){
+void MainWindow::activateTimer() {
+    QString timing = ui->labelTimingValue->text();
+    timerId = startTimer(timing.toInt() * 1000);
+}
+
+void MainWindow::deactivateTimer() {
+    killTimer(timerId);
+}
+
+void MainWindow::getProducerData(){
     QString str;
-    QByteArray array;
     QStringList list;
     qint64 thetime;
-    qDebug() << "to get data...";
+
     if(socket->state() == QAbstractSocket::ConnectedState){
         if(socket->isOpen()){
-            qDebug() << "reading...";
-            socket->write("get 127.0.0.1 5\r\n");
+
+            QString request = QString("get ") + selectedProducer + QString(" 5\r\n");
+
+            socket->write(request.toStdString().c_str());
             socket->waitForBytesWritten();
             socket->waitForReadyRead();
             qDebug() << socket->bytesAvailable();
+
             while(socket->bytesAvailable()){
                 str = socket->readLine().replace("\n","").replace("\r","");
                 list = str.split(" ");
@@ -77,9 +127,31 @@ void MainWindow::getData(){
     }
 }
 
+void MainWindow::timerEvent(QTimerEvent *event) {
+    getProducerData();
+}
 
-MainWindow::~MainWindow()
+void MainWindow::listProducers()
 {
-    delete socket;
-    delete ui;
+    QString str;
+
+    if(socket->state() == QAbstractSocket::ConnectedState){
+
+        // Fetch all producers
+        socket->write("list");
+        socket->waitForBytesWritten();
+        socket->waitForReadyRead();
+
+        // Add them on the list widget
+        while(socket->bytesAvailable()){
+            str = socket->readLine().replace("\n","").replace("\r","");
+            ui->listWidgetProducers->addItem(str);
+        }
+    }
+}
+
+
+void MainWindow::setProducer(QListWidgetItem *item)
+{
+    selectedProducer = item->text();
 }
