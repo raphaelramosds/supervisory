@@ -8,10 +8,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
 
+    // Create socket
     socket = new QTcpSocket(this);
 
-    // Connect and disconnect
-
+    // Connect and disconnect TCP
     connect(
         ui->pushButtonConnect,
         SIGNAL(clicked(bool)),
@@ -24,13 +24,20 @@ MainWindow::MainWindow(QWidget *parent) :
         this,
         SLOT(tcpDisconnect()));
 
-    /*
-    connect(ui->pushButtonPut,
-            SIGNAL(clicked(bool)),
-            this,
-            SLOT(putData()));
-    */
+    // Activate and deactivate timer
+    connect(
+        ui->pushButtonStart,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(activateTimer()));
 
+    connect(
+        ui->pushButtonStop,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(deactivateTimer()));
+
+    // Set timing value
     connect(
         ui->horizontalSliderTiming,
         SIGNAL(valueChanged(int)),
@@ -55,17 +62,37 @@ void MainWindow::tcpDisconnect()
     socket->disconnectFromHost();
 }
 
-void MainWindow::putData(){
+void MainWindow::activateTimer()
+{
+    QString timing = ui->labelTimingValue->text();
+    timerId = startTimer(timing.toInt() * 1000);
+}
 
+void MainWindow::deactivateTimer()
+{
+    killTimer(timerId);
+}
+
+
+MainWindow::~MainWindow(){
+    delete socket;
+    delete ui;
+}
+
+void MainWindow::timerEvent(QTimerEvent *event)
+{
     QDateTime datetime;
     QString str;
     qint64 msecdate;
+    int min, max, measurement;
 
     if(socket->state() == QAbstractSocket::ConnectedState){
-
+        min = ui->horizontalSliderMin->value();
+        max = ui->horizontalSliderMax->value();
+        measurement = rand()%(max - min + 1) + min;
         msecdate = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
-        str = "set "+ QString::number(msecdate) + " " + QString::number(rand()%35) + "\r\n";
+        str = "set "+ QString::number(msecdate) + " " + QString::number(measurement) + "\r\n";
 
         qDebug() << str;
         qDebug() << socket->write(str.toStdString().c_str()) << " bytes written";
@@ -74,9 +101,6 @@ void MainWindow::putData(){
             qDebug() << "wrote";
         }
     }
+
 }
 
-MainWindow::~MainWindow(){
-    delete socket;
-    delete ui;
-}
