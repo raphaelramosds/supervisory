@@ -60,10 +60,17 @@ void MainWindow::tcpDisconnect()
 {
     qDebug() << "Disconnecting";
     socket->disconnectFromHost();
+
+    // In case of the stop button was not pressed
+    killTimer(timerId);
 }
 
 void MainWindow::activateTimer()
 {
+    // Kill possible previous timer
+    killTimer(timerId);
+
+    // Start a new one
     QString timing = ui->labelTimingValue->text();
     timerId = startTimer(timing.toInt() * 1000);
 }
@@ -100,6 +107,8 @@ void MainWindow::timerEvent(QTimerEvent *event)
         if(socket->waitForBytesWritten(3000)){
             qDebug() << "wrote";
         }
+
+        ui->textBrowserHistory->append(str);
     }
 
 }
