@@ -76,7 +76,7 @@ void MyThread::readyRead(){
     // List producers
     if(cmd == "list"){
         hostList = storage->getHostList();
-        for(int i = 0; i < int(hostList.size()); i++){
+        for(int i = 0; i < hostList.size(); i++){
             socket->write(hostList[i].toString().toStdString().c_str());
             socket->write("\r\n");
         }
@@ -103,7 +103,7 @@ void MyThread::readyRead(){
                 entry = storage->getData(address, nsamples);
 
                 // Display entries for the client
-                for(int i = 0; i < int(entry.size()); i++){
+                for(int i = 0; i < entry.size(); i++){
                     value = entry[i];
                     socket->write(QString().number(value.theTime).toStdString().c_str());
                     socket->write(" ");
@@ -116,19 +116,34 @@ void MyThread::readyRead(){
 
     // Inserts telemetry data
     else if(cmd == "set"){
-        // sintaxe: set tempo_em_ms float_value
-        // O tempo deverá ser diferenca de hora para 1970-01-01T00:00:00.000
-        // ex: set 1496156112708 9.16666
+
+        // Sintaxe: set time_in_ms float_value
+        // e.g. set 1496156112708 9.16666
+
+        // time_in_ms : is the diference between the
+        // current time and 1970-01-01T00:00:00.000
+
         if(list.size() == 3){
+
             bool ok;
+
+            // Get the time
             cmd = list.at(1);
+
+            // Assert if time is a long long
             msecdate = cmd.toLongLong(&ok);
+
             if(ok){
+
+                // Get the measurement
                 cmd = list.at(2);
+
+                // Assert if measurement is a float
                 value.measurement = cmd.toFloat(&ok);
+
                 if(ok){
-                    storage->addData(socket->peerAddress(),msecdate,
-                                     value.measurement);
+                    // Store data
+                    storage->addData(socket->peerAddress(), msecdate, value.measurement);
                 }
             }
         }
@@ -142,7 +157,7 @@ void MyThread::disconnected(){
     str = QString("<i>") + QString().setNum(socketDescriptor) + " <font color=\"red\">Disconnected</font></i>";
     emit message(str);
 
-    // Close the socker
+    // Close the socket
     socket->deleteLater();
 
     // Stop the thread
