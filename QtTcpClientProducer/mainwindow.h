@@ -16,9 +16,10 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    void tcpConnect();
 
 public slots:
+    void tcpConnect();
+    void tcpDisconnect();
     void putData();
 
 private:
