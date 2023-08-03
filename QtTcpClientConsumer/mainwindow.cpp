@@ -7,23 +7,46 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    socket = new QTcpSocket(this);
-    tcpConnect();
 
+    // Create socket
+    socket = new QTcpSocket(this);
+
+    // Connect and disconnect TCP
+    connect(
+        ui->pushButtonConnect,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(tcpConnect()));
+
+    connect(
+        ui->pushButtonDisconnect,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(tcpDisconnect()));
+
+    /*
     connect(ui->pushButtonGet,
             SIGNAL(clicked(bool)),
             this,
             SLOT(getData()));
+    */
 }
 
 void MainWindow::tcpConnect(){
-    socket->connectToHost("127.0.0.1",1234);
+
+    socket->connectToHost(ui->lineEditAddress->text(),1234);
+
     if(socket->waitForConnected(3000)){
         qDebug() << "Connected";
-    }
-    else{
+    } else{
         qDebug() << "Disconnected";
     }
+}
+
+void MainWindow::tcpDisconnect()
+{
+    qDebug() << "Disconnecting";
+    socket->disconnectFromHost();
 }
 
 void MainWindow::getData(){
