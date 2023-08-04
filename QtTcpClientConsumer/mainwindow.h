@@ -25,7 +25,7 @@ public:
     void timerEvent(QTimerEvent *event);
 
 public slots:
-    void listProducers();
+    void getProducers();
     void setProducer(QListWidgetItem *item);
     void tcpConnect();
     void tcpDisconnect();
@@ -42,6 +42,7 @@ private:
     Ui::MainWindow *ui;
     QTcpSocket *socket;
     QString selectedProducer;
+    std::vector<QString> producersList;
     int timerId;
 };
 

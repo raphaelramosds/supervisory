@@ -31,7 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
         this,
         SIGNAL(hostConnected(bool)),
         this,
-        SLOT(listProducers())
+        SLOT(getProducers())
     );
 
     // Set producer whose data will be displayed
@@ -106,11 +106,18 @@ void MainWindow::tcpConnect(){
 
 void MainWindow::tcpDisconnect()
 {
+    // Kill previous timer
+    deactivateTimer();
+
     qDebug() << "Disconnecting";
     socket->disconnectFromHost();
 }
 
 void MainWindow::activateTimer() {
+
+    // Kill previous timer
+    deactivateTimer();
+
     QString timing = ui->labelTimingValue->text();
     timerId = startTimer(timing.toInt() * 1000);
     emit timerActivated(timing.toInt() * 1000);
@@ -160,7 +167,7 @@ void MainWindow::timerEvent(QTimerEvent *event) {
     }
 }
 
-void MainWindow::listProducers()
+void MainWindow::getProducers()
 {
     QString str;
 
@@ -174,7 +181,10 @@ void MainWindow::listProducers()
         // Add them on the list widget
         while(socket->bytesAvailable()){
             str = socket->readLine().replace("\n","").replace("\r","");
-            ui->listWidgetProducers->addItem(str);
+            if (!std::count(producersList.begin(), producersList.end(), str)) {
+                ui->listWidgetProducers->addItem(str);
+                producersList.push_back(str);
+            }
         }
     }
 }
