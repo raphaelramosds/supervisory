@@ -2,6 +2,8 @@
 #include "ui_mainwindow.h"
 #include <QDateTime>
 
+#include "monitor.h"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -55,12 +57,32 @@ MainWindow::MainWindow(QWidget *parent) :
         SLOT(deactivateTimer())
     );
 
+    // Start and stop monitor
+    connect(
+        this,
+        SIGNAL(timerActivated(int)),
+        ui->monitor,
+        SLOT(turnOnMonitor(int)));
+
+    connect(
+        this,
+        SIGNAL(timerDeactivated()),
+        ui->monitor,
+        SLOT(turnOffMonitor()));
+
     // Set timing value
     connect(
         ui->horizontalSliderTiming,
         SIGNAL(valueChanged(int)),
         ui->labelTimingValue,
         SLOT(setNum(int)));
+
+    // Trigger paint
+    connect(
+        this,
+        SIGNAL(entryChanged(Entry*)),
+        ui->monitor,
+        SLOT(setEntry(Entry*)));
 }
 
 
@@ -91,13 +113,15 @@ void MainWindow::tcpDisconnect()
 void MainWindow::activateTimer() {
     QString timing = ui->labelTimingValue->text();
     timerId = startTimer(timing.toInt() * 1000);
+    emit timerActivated(timing.toInt() * 1000);
 }
 
 void MainWindow::deactivateTimer() {
     killTimer(timerId);
+    emit timerDeactivated();
 }
 
-void MainWindow::getProducerData(){
+void MainWindow::timerEvent(QTimerEvent *event) {
     QString str;
     QStringList list;
     qint64 thetime;
@@ -110,25 +134,30 @@ void MainWindow::getProducerData(){
             socket->write(request.toStdString().c_str());
             socket->waitForBytesWritten();
             socket->waitForReadyRead();
-            qDebug() << socket->bytesAvailable();
+            // qDebug() << socket->bytesAvailable();
 
             while(socket->bytesAvailable()){
                 str = socket->readLine().replace("\n","").replace("\r","");
                 list = str.split(" ");
                 if(list.size() == 2){
+                    Entry data;
                     bool ok;
+
+                    // Processing received data
                     str = list.at(0);
                     thetime = str.toLongLong(&ok);
                     str = list.at(1);
-                    qDebug() << thetime << ": " << str;
+
+                    data.measurement = str;
+                    data.time = thetime;
+
+                    // qDebug() << thetime << ": " << str;
+
+                    emit entryChanged(&data);
                 }
             }
         }
     }
-}
-
-void MainWindow::timerEvent(QTimerEvent *event) {
-    getProducerData();
 }
 
 void MainWindow::listProducers()

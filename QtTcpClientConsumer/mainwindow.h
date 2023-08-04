@@ -10,6 +10,11 @@ namespace Ui {
 class MainWindow;
 }
 
+struct Entry {
+    qlonglong time;
+    QString measurement;
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -22,7 +27,6 @@ public:
 public slots:
     void listProducers();
     void setProducer(QListWidgetItem *item);
-    void getProducerData();
     void tcpConnect();
     void tcpDisconnect();
     void activateTimer();
@@ -30,6 +34,9 @@ public slots:
 
 signals:
     void hostConnected(bool);
+    void entryChanged(Entry*);
+    void timerActivated(int);
+    void timerDeactivated();
 
 private:
     Ui::MainWindow *ui;

@@ -97,9 +97,6 @@ sequências de literais, separa-as conforme a quantidade de espaços
 presentes e armazena os dados associados em uma estrutura local criada
 para esse fim.
 
-Em se tratando de um projeto meramente acadêmico, pouco controle de
-erro é realizado nessa versão inicial.
-
 Quando o servidor é executado, uma mensagem é exibida na aba
 **Application Output** do QtCreator mostrando o IP local do servidor,
 como ilustram as linhas a seguir:
@@ -142,7 +139,7 @@ recuperar os endereços das máquinas que produziram dados e traçar um
 gráfico data-hora x valor de uma sequência de dados fornecida pelo
 servidor.
 
-O usuário do módulo consumidor de dados, o usuário deverá ter à sua
+O usuário do módulo consumidor de dados deverá ter à sua
 disposição as seguintes funcionalidades:
 
 - Indicar o endereço IP do servidor de dados ao qual o cliente deverá
